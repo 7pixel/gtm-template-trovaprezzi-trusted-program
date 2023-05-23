@@ -111,7 +111,7 @@ if (ecommerce.transaction_id) {
   shipping = makeNumber(ecommerce.shipping);
   drtp_line_items = [];
   ecommerce.items.forEach((item) =>
-    drtp_line_items.push({ sku: item.item_id, product_name: item.item_name })
+    drtp_line_items.push({ sku: item.item_id, name: item.item_name })
   );
 } else if (ecommerce.purchase) {
   // UA
@@ -122,7 +122,7 @@ if (ecommerce.transaction_id) {
   shipping = makeNumber(purchase.actionField.shipping);
   drtp_line_items = [];
   purchase.products.forEach((product) =>
-    drtp_line_items.push({ sku: product.id, product_name: product.name })                        
+    drtp_line_items.push({ sku: product.id, name: product.name })                        
   );
 } else {
   logTP('purchase measurement not defined');
@@ -151,7 +151,7 @@ function tpScript() {
   callInWindow('_tpt.push', { event: 'setOrderId', order_id: drtp_oid });
   callInWindow('_tpt.push', { event: 'setEmail', email: drpt_ue });
   drtp_line_items.forEach((product) =>
-    callInWindow('_tpt.push', product)
+    callInWindow('_tpt.push', { event: 'addItem', sku: product.sku, product_name: product.name })
 );
   callInWindow('_tpt.push', { event: 'setAmount', amount: drtp_oa });
   callInWindow('_tpt.push', { event: 'orderSubmit'});
@@ -344,13 +344,15 @@ scenarios:
     \ mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
     \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
-- name: '[GA4] setOrderId called with right order_id'
+- name: '[GA4] addItem called with right sku and product_name'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
-    \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [],\n\
-    \    };\n  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow', (method,\
-    \ command) => {\n  if (command.event === 'setOrderId') {\n    targetCommandCalled\
-    \ = true;\n    assertThat(command.order_id).isEqualTo('order1234');\n  } \n});\n\
-    \nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
+    \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [\n\
+    \        {\n          item_name: 'product name',\n          item_id: 'sku123',\n\
+    \        },\n      ],\n    };\n  }\n});\n\nlet targetCommandCalled = false;\n\
+    mock('callInWindow', (method, command) => {\n  if (command.event === 'addItem')\
+    \ {\n    targetCommandCalled = true;\n    assertThat(command.sku).isEqualTo('sku123');\n\
+    \    assertThat(command.product_name).isEqualTo('product name');\n  } \n});\n\n\
+    const mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
     \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: Fail if merchant key not defined
