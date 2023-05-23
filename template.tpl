@@ -147,16 +147,14 @@ injectScript(
 );
 
 function tpScript() {
-  callInWindow('_tpt.push', { event: "setAccount", id: drtp_mk });
-  callInWindow('_tpt.push', { event: "setOrderId", order_id: drtp_oid });
-  callInWindow('_tpt.push', { event: "setEmail", email: drpt_ue });
-  logToConsole('PRODUCTS_SCRIPT:');
-  logToConsole(drtp_line_items);
+  callInWindow('_tpt.push', { event: 'setAccount', id: drtp_mk });
+  callInWindow('_tpt.push', { event: 'setOrderId', order_id: drtp_oid });
+  callInWindow('_tpt.push', { event: 'setEmail', email: drpt_ue });
   drtp_line_items.forEach((product) =>
     callInWindow('_tpt.push', product)
-  );
-  callInWindow('_tpt.push', { event: "setAmount", amount: drtp_oa });
-  callInWindow('_tpt.push', { event: "orderSubmit"});
+);
+  callInWindow('_tpt.push', { event: 'setAmount', amount: drtp_oa });
+  callInWindow('_tpt.push', { event: 'orderSubmit'});
   data.gtmOnSuccess();
 }
 
