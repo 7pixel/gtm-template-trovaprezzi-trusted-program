@@ -324,17 +324,26 @@ scenarios:
     });\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
     \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: true,\n\
     };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
-- name: '[GA3] Order with one item'
+- name: '[GA3] setOrderId called with right order_id'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      purchase: {\n        actionField: {\n          id: 'order1234',\n \
     \         revenue: 100.0,\n        },\n        products: [\n          {\n    \
     \        name: 'product name',\n            id: 'sku123',\n          },\n    \
-    \    ],\n      }\n    };\n  }\n});\n\nmock('callInWindow', (method, command) =>\
-    \ {\n  if (command.event === 'setOrderId') {\n    assertThat(command.id === 'order1234');\n\
-    \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
-    \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: true,\n\
-    };\n\nrunCode(mockData);\n\nassertApi('injectScript').wasCalled();\nassertApi('callInWindow').wasCalledWith('_tpt.push',\
-    \ { event: 'setAccount', id: 'merchantkey123' });\nassertApi('gtmOnSuccess').wasCalled();"
+    \    ],\n      }\n    };\n  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow',\
+    \ (method, command) => {\n  if (command.event === 'setOrderId') {\n    targetCommandCalled\
+    \ = true;\n    assertThat(command.id === 'order1234');\n  } \n});\n\nconst mockData\
+    \ = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
+    \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
+    \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
+- name: '[GA4] setOrderId called with right order_id'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [],\n\
+    \    };\n  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow', (method,\
+    \ command) => {\n  if (command.event === 'setOrderId') {\n    targetCommandCalled\
+    \ = true;\n    assertThat(command.order_id).isEqualTo('order1234');\n  } \n});\n\
+    \nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
+    \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
+    \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] setAmount called with right amount'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [],\n\
