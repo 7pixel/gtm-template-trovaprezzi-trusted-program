@@ -11,8 +11,26 @@ Tag template ufficiale per il programma Trusted Program di Trovaprezzi.it da usa
 ## Sviluppo
 
 - Per editare il template importare il file `template.tpl` in Google Tag Manager Template Editor e riesportarlo una volta completata la modifica
-- Nel file esportato viene rimossa la riga con le categorie, questa modifica non va committata (è una stranezza, vedi guida alla pubblicazione)
-- I test dove ci si aspetta un fallimento (chiamata a `gtmOnFailure`) vengono considerati falliti (altra stranezza)
+
+## Test
+
+- Per testare la funzione principale `tpScript`, chiamata come success callback di `injectScript`, quest'ultimo è stato mockato globalmente in `Setup`
+
+- `assertCalledWith` può essere usato per testare solo la prima chiamata ad un'API (quindi non lo usiamo)
+
+- Per le chiamate successive è necessario inserire l'assert all'interno del mock dell'API
+
+  ```js
+  let targetCommandCalled = false;
+  mock('callInWindow', (method, command) => {
+    if (command.event === 'setEmail') {
+      targetCommandCalled = true;
+      assertThat(command.id === 'user@example.com');  // assert parametri del comando corretti
+    } 
+  });
+  
+  assertThat(targetCommandCalled).isTrue();  // assert evento chiamato almeno una volta
+  ```
 
 ### Guide
 
