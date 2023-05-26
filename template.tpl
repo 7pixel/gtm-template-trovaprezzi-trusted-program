@@ -327,14 +327,35 @@ scenarios:
 - name: '[GA3] setOrderId called with right order_id'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      purchase: {\n        actionField: {\n          id: 'order1234',\n \
-    \         revenue: 100.0,\n        },\n        products: [\n          {\n    \
-    \        name: 'product name',\n            id: 'sku123',\n          },\n    \
-    \    ],\n      }\n    };\n  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow',\
-    \ (method, command) => {\n  if (command.event === 'setOrderId') {\n    targetCommandCalled\
-    \ = true;\n    assertThat(command.id === 'order1234');\n  } \n});\n\nconst mockData\
+    \         revenue: 100.0,\n        },\n        products: [],\n      }\n    };\n\
+    \  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow', (method, command)\
+    \ => {\n  if (command.event === 'setOrderId') {\n    targetCommandCalled = true;\n\
+    \    assertThat(command.id === 'order1234');\n  } \n});\n\nconst mockData = {\n\
+    \  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n  valueIncludesTax:\
+    \ true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\n\
+    assertThat(targetCommandCalled).isTrue();"
+- name: '[GA3] setAmount called with right amount'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      purchase: {\n        actionField: {\n          id: 'order1234',\n \
+    \         revenue: 100.0,\n        },\n        products: [],\n      }\n    };\n\
+    \  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow', (method, command)\
+    \ => {\n  if (command.event === 'setAmount') {\n    targetCommandCalled = true;\n\
+    \    assertThat(command.amount).isEqualTo(100.0);\n  } \n});\n\nconst mockData\
     \ = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
     \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
+- name: '[GA3] addItem called with right sku and product_name'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      purchase: {\n        actionField: {\n          id: 'order1234',\n \
+    \         revenue: 100.0,\n        },\n        products: [\n          {\n    \
+    \        name: 'product name',\n            id: 'sku123',\n          },\n    \
+    \    ],\n      }\n    };\n  }\n});\n\nlet targetCommandCalled = false;\nmock('callInWindow',\
+    \ (method, command) => {\n  if (command.event === 'addItem') {\n    targetCommandCalled\
+    \ = true;\n    assertThat(command.sku).isEqualTo('sku123');\n    assertThat(command.product_name).isEqualTo('product\
+    \ name');\n  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n\
+    \  customerEmail: 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping:\
+    \ true,\n};\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\n\
+    assertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] setOrderId called with right order_id'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [],\n\
@@ -353,6 +374,24 @@ scenarios:
     \ mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
     \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
+- name: '[GA4] setAmount called with right amount (tax excluded)'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      shipping:\
+    \ 10,\n      tax: 5,\n      items: [],\n    };\n  }\n});\n\nlet targetCommandCalled\
+    \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
+    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(105.0);\n\
+    \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
+    \ 'user@example.com',\n  valueIncludesTax: false,\n  valueIncludesShipping: true,\n\
+    };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
+- name: '[GA4] setAmount called with right amount (shipping excluded)'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      shipping:\
+    \ 10,\n      tax: 5,\n      items: [],\n    };\n  }\n});\n\nlet targetCommandCalled\
+    \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
+    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(110.0);\n\
+    \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
+    \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: false,\n\
+    };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] addItem called with right sku and product_name'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [\n\
