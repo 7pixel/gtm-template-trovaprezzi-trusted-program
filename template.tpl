@@ -84,19 +84,19 @@ const makeNumber = require('makeNumber');
 
 
 if (!data.hasOwnProperty('merchantKey')) {
-  logTP('merchant key not defined');
+  logTP('merchant key field not defined');
   data.gtmOnFailure();
   return;
 }
 
 if (!data.hasOwnProperty('customerEmail')) {
-  logTP('customer email not defined');
+  logTP('customer email field not defined');
   data.gtmOnFailure();
   return;
 }
 
 if (data.customerEmail === undefined) {
-  logTP('customer email variable malformed or undefined');
+  logTP('customer email field set, but variable malformed or undefined');
   data.gtmOnFailure();
   return;
 }
@@ -419,7 +419,7 @@ scenarios:
     const mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
     \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
-- name: Fail if merchant key not defined
+- name: Fail if merchant key field not defined
   code: |
     mock('copyFromDataLayer', (key) => {
       if (key === 'ecommerce.purchase') {
@@ -447,7 +447,7 @@ scenarios:
 
     assertApi('logToConsole').wasCalledWith("Trusted Program: merchant key not defined");
     assertApi('gtmOnFailure').wasCalled();
-- name: Fail if customer email not defined
+- name: Fail if customer email field not defined
   code: |
     mock('copyFromDataLayer', (key) => {
       if (key === 'ecommerce') {
@@ -467,6 +467,28 @@ scenarios:
     runCode(mockData);
 
     assertApi('logToConsole').wasCalledWith("Trusted Program: customer email not defined");
+    assertApi('gtmOnFailure').wasCalled();
+- name: Fail if customer email set but undefined
+  code: |
+    mock('copyFromDataLayer', (key) => {
+      if (key === 'ecommerce') {
+        return {
+          transaction_id: 'order1234',
+          value: 100.0,
+          items: [],
+        };
+      }
+    });
+
+    // customer email object property missing if not defined in ui
+    const mockData = {
+      merchantKey: 'merchantkey123',
+      customerEmail: undefined,
+    };
+
+    runCode(mockData);
+
+    assertApi('logToConsole').wasCalledWith("Trusted Program: customer email variable malformed or undefined");
     assertApi('gtmOnFailure').wasCalled();
 - name: Fail if enhanced ecommerce undefined
   code: |
@@ -501,28 +523,6 @@ scenarios:
     runCode(mockData);
 
     assertApi('logToConsole').wasCalledWith("Trusted Program: purchase measurement not defined");
-    assertApi('gtmOnFailure').wasCalled();
-- name: Fail if customer email set but undefined
-  code: |
-    mock('copyFromDataLayer', (key) => {
-      if (key === 'ecommerce') {
-        return {
-          transaction_id: 'order1234',
-          value: 100.0,
-          items: [],
-        };
-      }
-    });
-
-    // customer email object property missing if not defined in ui
-    const mockData = {
-      merchantKey: 'merchantkey123',
-      customerEmail: undefined,
-    };
-
-    runCode(mockData);
-
-    assertApi('logToConsole').wasCalledWith("Trusted Program: customer email variable malformed or undefined");
     assertApi('gtmOnFailure').wasCalled();
 setup: |-
   // In the tests we assume that the trusted library injection always succeed
