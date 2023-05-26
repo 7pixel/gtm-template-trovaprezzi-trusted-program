@@ -95,6 +95,12 @@ if (!data.hasOwnProperty('customerEmail')) {
   return;
 }
 
+if (data.customerEmail === undefined) {
+  logTP('customer email variable malformed or undefined');
+  data.gtmOnFailure();
+  return;
+}
+
 const ecommerce = copyFromDataLayer('ecommerce');
 if (!ecommerce) {
   logTP('ecommerce not detected in the dataLayer');
@@ -137,6 +143,7 @@ if (!data.valueIncludesTax) {
 if (!data.valueIncludesShipping) {
     drtp_oa += shipping;
 }
+
 const drtp_mk = data.merchantKey.trim(); 
 const drpt_ue = data.customerEmail.trim();
 
@@ -494,6 +501,28 @@ scenarios:
     runCode(mockData);
 
     assertApi('logToConsole').wasCalledWith("Trusted Program: purchase measurement not defined");
+    assertApi('gtmOnFailure').wasCalled();
+- name: Fail if customer email set but undefined
+  code: |
+    mock('copyFromDataLayer', (key) => {
+      if (key === 'ecommerce') {
+        return {
+          transaction_id: 'order1234',
+          value: 100.0,
+          items: [],
+        };
+      }
+    });
+
+    // customer email object property missing if not defined in ui
+    const mockData = {
+      merchantKey: 'merchantkey123',
+      customerEmail: undefined,
+    };
+
+    runCode(mockData);
+
+    assertApi('logToConsole').wasCalledWith("Trusted Program: customer email variable malformed or undefined");
     assertApi('gtmOnFailure').wasCalled();
 setup: |-
   // In the tests we assume that the trusted library injection always succeed
