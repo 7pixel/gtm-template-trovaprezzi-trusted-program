@@ -392,6 +392,15 @@ scenarios:
     \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
     \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: false,\n\
     };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
+- name: '[GA4] setAmount called with right amount (values are text)'
+  code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
+    \ {\n      transaction_id: 'order1234',\n      value: 100.5,\n      shipping:\
+    \ 10,\n      tax: '5',\n      items: [],\n    };\n  }\n});\n\nlet targetCommandCalled\
+    \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
+    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(115.5);\n\
+    \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
+    \ 'user@example.com',\n  valueIncludesTax: false,\n  valueIncludesShipping: false,\n\
+    };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] addItem called with right sku and product_name'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      items: [\n\
