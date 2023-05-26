@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Thank you page</title>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){
+      w[l]=w[l]||[];
+      w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+      j.async=true;
+      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+      f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-W44QFNZ');
+  </script>
+  <!-- End Google Tag Manager -->
+</head>
+<body>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    // Pushing user_email to the data layer
+    var userEmail = 'user_email2@tp.it';
+    window.dataLayer.push({
+      'user_email': userEmail
+    });
+
+    function pushPurchaseUA() {
+      var purchaseData = {
+        'event': 'purchase',
+        'ecommerce': {
+          'purchase': {
+            'actionField': {
+              'id': 'id_UA_1',                         // Transaction 
+              'revenue': '35.43',                     // Total transaction value
+              'tax':'4.90',
+              'shipping': '5.99',
+            },
+            'products': [{
+              'name': 'product_name_UA',                     // Name or ID is required.
+              'id': 'product_id_12345_UA',
+            }]
+          }
+        }
+      };
+
+      window.dataLayer.push(purchaseData);
+      displayData(purchaseData);
+    }
+
+    function pushPurchaseGA4() {
+      var purchaseData = {
+        'event': 'purchase',
+        'ecommerce': {
+          'transaction_id' : 'transaction_id_GA4_1',         // Transaction 
+          'value' : '35.43',                               // Total transaction value
+          'tax':'4.90',
+          'shipping': '5.99',
+          'items': [{
+            'item_id' : 'product_id_GA4',
+            'item_name' : 'product_name_GA4',
+          }]
+        },
+      };
+
+      window.dataLayer.push(purchaseData);
+      displayData(purchaseData);
+    }
+
+    function displayData(data) {
+      var displayElement = document.getElementById('dataDisplay');
+      displayElement.textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W44QFNZ"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <button onclick="pushPurchaseUA()">Push purchase UA</button>
+  <button onclick="pushPurchaseGA4()">Push purchase GA4</button>
+
+  <pre id="dataDisplay"></pre>
+</body>
+</html>
