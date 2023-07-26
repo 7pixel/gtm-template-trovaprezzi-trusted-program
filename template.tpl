@@ -96,7 +96,7 @@ if (!data.hasOwnProperty('customerEmail')) {
 }
 
 if (data.customerEmail === undefined) {
-  logTP('customer email field set, but variable malformed or undefined');
+  logTP('customer email variable malformed or undefined');
   data.gtmOnFailure();
   return;
 }
@@ -138,10 +138,10 @@ if (ecommerce.transaction_id) {
 
 // Compute order amount
 if (!data.valueIncludesTax) {
-    drtp_oa += tax;
+    drtp_oa = drtp_oa + tax;
 }
-if (!data.valueIncludesShipping) {
-    drtp_oa += shipping;
+if (data.valueIncludesShipping) {
+    drtp_oa = drtp_oa - shipping;
 }
 
 const drtp_mk = data.merchantKey.trim(); 
@@ -349,7 +349,7 @@ scenarios:
     \ => {\n  if (command.event === 'setAmount') {\n    targetCommandCalled = true;\n\
     \    assertThat(command.amount).isEqualTo(100.0);\n  } \n});\n\nconst mockData\
     \ = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
-    \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
+    \  valueIncludesTax: true,\n  valueIncludesShipping: false,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA3] addItem called with right sku and product_name'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
@@ -379,7 +379,7 @@ scenarios:
     \ command) => {\n  if (command.event === 'setAmount') {\n    targetCommandCalled\
     \ = true;\n    assertThat(command.amount).isEqualTo(100.0);\n  } \n});\n\nconst\
     \ mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail: 'user@example.com',\n\
-    \  valueIncludesTax: true,\n  valueIncludesShipping: true,\n};\n\nrunCode(mockData);\n\
+    \  valueIncludesTax: true,\n  valueIncludesShipping: false,\n};\n\nrunCode(mockData);\n\
     \nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] setAmount called with right amount (tax excluded)'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
@@ -388,23 +388,23 @@ scenarios:
     \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
     \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(105.0);\n\
     \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
-    \ 'user@example.com',\n  valueIncludesTax: false,\n  valueIncludesShipping: true,\n\
+    \ 'user@example.com',\n  valueIncludesTax: false,\n  valueIncludesShipping: false,\n\
     };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
-- name: '[GA4] setAmount called with right amount (shipping excluded)'
+- name: '[GA4] setAmount called with right amount (shipping included)'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.0,\n      shipping:\
     \ 10,\n      tax: 5,\n      items: [],\n    };\n  }\n});\n\nlet targetCommandCalled\
     \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
-    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(110.0);\n\
+    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(90.0);\n\
     \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
-    \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: false,\n\
+    \ 'user@example.com',\n  valueIncludesTax: true,\n  valueIncludesShipping: true,\n\
     };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
 - name: '[GA4] setAmount called with right amount (values are text)'
   code: "mock('copyFromDataLayer', (key) => {\n  if (key === 'ecommerce') {\n    return\
     \ {\n      transaction_id: 'order1234',\n      value: 100.5,\n      shipping:\
     \ 10,\n      tax: '5',\n      items: [],\n    };\n  }\n});\n\nlet targetCommandCalled\
     \ = false;\nmock('callInWindow', (method, command) => {\n  if (command.event ===\
-    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(115.5);\n\
+    \ 'setAmount') {\n    targetCommandCalled = true;\n    assertThat(command.amount).isEqualTo(105.5);\n\
     \  } \n});\n\nconst mockData = {\n  merchantKey: 'merchantkey123',\n  customerEmail:\
     \ 'user@example.com',\n  valueIncludesTax: false,\n  valueIncludesShipping: false,\n\
     };\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertThat(targetCommandCalled).isTrue();"
@@ -445,7 +445,7 @@ scenarios:
 
     runCode(mockData);
 
-    assertApi('logToConsole').wasCalledWith("Trusted Program: merchant key not defined");
+    assertApi('logToConsole').wasCalledWith("Trusted Program: merchant key field not defined");
     assertApi('gtmOnFailure').wasCalled();
 - name: Fail if customer email field not defined
   code: |
@@ -466,7 +466,7 @@ scenarios:
 
     runCode(mockData);
 
-    assertApi('logToConsole').wasCalledWith("Trusted Program: customer email not defined");
+    assertApi('logToConsole').wasCalledWith("Trusted Program: customer email field not defined");
     assertApi('gtmOnFailure').wasCalled();
 - name: Fail if customer email set but undefined
   code: |
