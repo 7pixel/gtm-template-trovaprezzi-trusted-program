@@ -15,5 +15,5 @@
 homepage: "https://trovaprezzi.it"
 documentation: "https://tracking.trovaprezzi.it/it/gtm_template_en.html"
 versions:
-  - sha: 4bb9b13b5329268adbe1874dfd1ac7f70a2637ea
+  - sha: 4365bc5cc27df414cd33f8c204e4ec0c60c75993
     changeNotes: Initial Version
