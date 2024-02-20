@@ -13,7 +13,7 @@
 # limitations under the License.
 
 homepage: "https://trovaprezzi.it"
-documentation: "https://tracking.trovaprezzi.it/it/gtm.html"
+documentation: "https://tracking.trovaprezzi.it/it/gtm_template_en.html"
 versions:
-  - sha: 72e8d5611413ea3f702695cd40e1389dbbb3dcb6
+  - sha: 4bb9b13b5329268adbe1874dfd1ac7f70a2637ea
     changeNotes: Initial Version
