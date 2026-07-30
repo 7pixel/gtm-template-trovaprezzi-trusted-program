@@ -86,23 +86,24 @@ ___TEMPLATE_PARAMETERS___
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
 const copyFromDataLayer = require('copyFromDataLayer');
-const encodeUriComponent = require('encodeUriComponent');
 const logToConsole = require('logToConsole');
 const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
 const makeNumber = require('makeNumber');
 const isConsentGranted = require('isConsentGranted');
-const makeInteger = require('makeInteger');
+const TP_LIB = 'https://tps.trovaprezzi.it/javascripts/tracking-vanilla.min.js';
 
-injectScript('https://tps.trovaprezzi.it/javascripts/tracking-vanilla.min.js',data.gtmOnFailure);
+injectScript(TP_LIB, onLibLoaded, onLibFailed, TP_LIB);
 
 const ecommerce = copyFromDataLayer('ecommerce');
+
 if (!ecommerce) {
   logTP('ecommerce not detected in the dataLayer');
+  data.gtmOnFailure();
   return;
 }
 
-if (!data.hasOwnProperty('merchantKey')) {
+if (data.merchantKey === undefined) {
   logTP('merchant key field not defined');
   data.gtmOnFailure();
   return;
@@ -120,13 +121,15 @@ if (data.customerEmail === undefined) {
   return;
 }
 
-let tax, shipping, drtp_oid, drtp_oa, drtp_line_items;
+let tax, shipping, drtp_oid, drtp_oa, drtp_cc, drtp_line_items;
+
 if (ecommerce.transaction_id) {
   // GA4
   drtp_oid = ecommerce.transaction_id;
   drtp_oa = makeNumber(ecommerce.value);
-  tax = makeNumber(ecommerce.tax);
-  shipping = makeNumber(ecommerce.shipping);
+  tax = makeNumber(ecommerce.tax) || 0;
+  shipping = makeNumber(ecommerce.shipping) || 0;
+  drtp_cc = ecommerce.currency;
   drtp_line_items = [];
   ecommerce.items.forEach((item) =>
     drtp_line_items.push({ sku: item.item_id, name: item.item_name })
@@ -136,11 +139,12 @@ if (ecommerce.transaction_id) {
   const purchase = ecommerce.purchase;
   drtp_oid = purchase.actionField.id;
   drtp_oa = makeNumber(purchase.actionField.revenue);
-  tax = makeNumber(purchase.actionField.tax);
-  shipping = makeNumber(purchase.actionField.shipping);
+  tax = makeNumber(purchase.actionField.tax) || 0;
+  shipping = makeNumber(purchase.actionField.shipping) || 0;
+  drtp_cc = ecommerce.currencyCode || purchase.actionField.currencyCode;
   drtp_line_items = [];
   purchase.products.forEach((product) =>
-    drtp_line_items.push({ sku: product.id, name: product.name })                        
+    drtp_line_items.push({ sku: product.id, name: product.name })
   );
 } else {
   logTP('purchase measurement not defined');
@@ -150,33 +154,46 @@ if (ecommerce.transaction_id) {
 
 // Compute order amount
 if (!data.valueIncludesTax) {
-    drtp_oa = drtp_oa + tax;
+  drtp_oa = drtp_oa + tax;
 }
 if (data.valueIncludesShipping) {
-    drtp_oa = drtp_oa - shipping;
+  drtp_oa = drtp_oa - shipping;
 }
 
-const drtp_mk = data.merchantKey.trim(); 
-const drpt_ue = data.customerEmail.trim();
+const drtp_mk = data.merchantKey.trim();
+const drtp_ue = data.customerEmail.trim();
 
-injectScript(
-  'https://tps.trovaprezzi.it/javascripts/tracking-vanilla.min.js', 
-  tpScript,  // the main code is called only after the library has been loaded
-  data.gtmOnFailure
-);
+injectScript(TP_LIB, tpScript, data.gtmOnFailure, TP_LIB);
 
 function tpScript() {
   callInWindow('_tpt.push', { event: 'setAccount', id: drtp_mk });
+  if (drtp_cc) {
+    callInWindow('_tpt.push', { event: 'setCurrencyCode', currency_code: drtp_cc.trim() });
+  }
   callInWindow('_tpt.push', { event: 'setOrderId', order_id: drtp_oid });
-  if (isConsentGranted('ad_storage') && isConsentGranted('ad_personalization') && isConsentGranted('ad_user_data') || data.consentMode == 'unavailable') {
-    callInWindow('_tpt.push', { event: 'setEmail', email: drpt_ue });
+
+  const adConsent = isConsentGranted('ad_storage') &&
+                    isConsentGranted('ad_personalization') &&
+                    isConsentGranted('ad_user_data');
+
+  if (adConsent || data.consentMode === 'unavailable') {
+    callInWindow('_tpt.push', { event: 'setEmail', email: drtp_ue });
     drtp_line_items.forEach((product) =>
       callInWindow('_tpt.push', { event: 'addItem', sku: product.sku, product_name: product.name })
-      );
+    );
   }
+
   callInWindow('_tpt.push', { event: 'setAmount', amount: drtp_oa });
-  callInWindow('_tpt.push', { event: 'orderSubmit'});
+  callInWindow('_tpt.push', { event: 'orderSubmit' });
   data.gtmOnSuccess();
+}
+
+function onLibLoaded() {
+  logTP('libreria caricata');
+}
+
+function onLibFailed() {
+  logTP('caricamento libreria fallito');
 }
 
 function logTP(msg) {
