@@ -16,13 +16,18 @@ homepage: "https://trovaprezzi.it"
 documentation: "https://tracking.trovaprezzi.it/it/gtm_template_en.html"
 versions:
   # Latest version
-  - sha: af81b4edfd91ec550cdfbb5502fcc6b2982dee6e
-    changeNotes: |2
-      added currency field
+  - sha: 1be902d510d083bb9e0d8530e6d5b29e38d6e384
+    changeNotes: 
+      modified terms of service
   # Older versions
+  - sha: af81b4edfd91ec550cdfbb5502fcc6b2982dee6e
+    changeNotes:
+      added currency field
   - sha: 0e899dd8819be030ad5b00b2f5a160fcf9e6bdfe
     changeNotes:
       updated vanilla all pages
       updated consent mode
   - sha: 4365bc5cc27df414cd33f8c204e4ec0c60c75993
     changeNotes: Initial Version
+
+
